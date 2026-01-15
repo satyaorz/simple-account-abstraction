@@ -9,15 +9,12 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS} from "lib/account-abstraction/contracts/core/Helpers.sol";
 import {IEntryPoint} from "lib/account-abstraction/contracts/interfaces/IEntryPoint.sol";
 
-
 contract MinimalAccount is IAccount, Ownable {
-
     /*//////////////////////////////////////////////////////////////
                             EXTERNAL ERRORS
     //////////////////////////////////////////////////////////////*/
     error MINIMALACCOUNT__NotFromEntryPoint();
     error MINIMALACCOUNT__NotFromEntryPointOrOwner();
-
 
     /*//////////////////////////////////////////////////////////////
                         EXTERNAL STATE VARIABLES
@@ -25,13 +22,12 @@ contract MinimalAccount is IAccount, Ownable {
 
     IEntryPoint private immutable I_ENTRYPOINT;
 
-
     /*//////////////////////////////////////////////////////////////
                            EXTERNAL MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
     modifier requireFromEntryPoint() {
-        if(msg.sender != address(I_ENTRYPOINT)) {
+        if (msg.sender != address(I_ENTRYPOINT)) {
             revert MINIMALACCOUNT__NotFromEntryPoint();
         }
         _;
@@ -48,7 +44,7 @@ contract MinimalAccount is IAccount, Ownable {
         address sender; ///// our minimal account
         uint256 nonce;  ///// number only used once, nonce
         bytes initCode; //// ignore for now
-        bytes callData; //// this is where we put "the good stuff". 
+        bytes callData; //// this is where we put "the good stuff".
         bytes32 accountGasLimits;
         uint256 preVerificationGas;
         bytes32 gasFees;
@@ -61,18 +57,16 @@ contract MinimalAccount is IAccount, Ownable {
         I_ENTRYPOINT = IEntryPoint(entryPoint);
     }
 
-
     /*//////////////////////////////////////////////////////////////
                                FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    
-   // A signature is valid, if it's the Minimal account owner
-    function validateUserOp(
-        PackedUserOperation calldata userOp,
-        bytes32 userOpHash,
-        uint256 missingAccountFunds
-    ) external requireFromEntryPoint returns (uint256 validationData) {
+    // A signature is valid, if it's the Minimal account owner
+    function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
+        external
+        requireFromEntryPoint
+        returns (uint256 validationData)
+    {
         // we need to validate signature `bytes signature` against all other parameter in the struct
         validationData = _validateSignature(userOp, userOpHash);
         // _validateNonce()
@@ -80,9 +74,13 @@ contract MinimalAccount is IAccount, Ownable {
         _payPrefund(missingAccountFunds);
     }
 
-    // userOpHash 
+    // userOpHash
     // EIP-191 version of the signed hash
-    function _validateSignature(PackedUserOperation calldata userOp, bytes32 userOpHash) internal view returns (uint256 validationData) {
+    function _validateSignature(PackedUserOperation calldata userOp, bytes32 userOpHash)
+        internal
+        view
+        returns (uint256 validationData)
+    {
         bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(userOpHash);
         address signer = ECDSA.recover(ethSignedMessageHash, userOp.signature);
         if (signer != owner()) {
@@ -97,7 +95,6 @@ contract MinimalAccount is IAccount, Ownable {
             (success);
         }
     }
-
 
     /*//////////////////////////////////////////////////////////////
                            EXTERNAL FUNCTIONS
