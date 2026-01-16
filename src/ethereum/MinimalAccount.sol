@@ -15,6 +15,7 @@ contract MinimalAccount is IAccount, Ownable {
     //////////////////////////////////////////////////////////////*/
     error MINIMALACCOUNT__NotFromEntryPoint();
     error MINIMALACCOUNT__NotFromEntryPointOrOwner();
+    error MINIMALACCOUNT__CallFailed(bytes);
 
     /*//////////////////////////////////////////////////////////////
                         EXTERNAL STATE VARIABLES
@@ -100,7 +101,14 @@ contract MinimalAccount is IAccount, Ownable {
                            EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function execute(address dest, uint256 value, bytes calldata functionData) external requireEntryPointOrOwner {}
+    receive() external payable {}
+
+    function execute(address dest, uint256 value, bytes calldata functionData) external requireEntryPointOrOwner {
+        (bool success, bytes memory result) = dest.call{value: value}(functionData);
+        if (!success) {
+            revert MINIMALACCOUNT__CallFailed(result);
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                                 GETTERS
