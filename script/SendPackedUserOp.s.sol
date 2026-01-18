@@ -15,20 +15,22 @@ contract SendPackedUserOp is Script {
 
     function run() public {}
 
-    function generateSignedUserOperation(bytes memory callData,
+    function generateSignedUserOperation(
+        bytes memory callData,
         HelperConfig.NetworkConfig memory config,
-        address minimalAccount) public returns(PackedUserOperation memory) {
+        address minimalAccount
+    ) public returns (PackedUserOperation memory) {
         // 1. Generate the unsigned data
         uint256 nonce = IEntryPoint(config.entryPoint).getNonce(minimalAccount, 0);
         PackedUserOperation memory UserOp = _generateUnsignedUserOperation(callData, minimalAccount, nonce);
         // 2. Sign it, and return it
-        // Send the userOp Hash 
+        // Send the userOp Hash
         bytes32 userOpHash = IEntryPoint(config.entryPoint).getUserOpHash(UserOp);
         bytes32 digest = userOpHash.toEthSignedMessageHash();
 
         // 3. Sign it
         uint8 v;
-        bytes32 r; 
+        bytes32 r;
         bytes32 s;
         if (block.chainid == 31337) {
             (v, r, s) = vm.sign(ANVIL_DEFAULT_KEY, digest);
@@ -39,7 +41,11 @@ contract SendPackedUserOp is Script {
         return UserOp;
     }
 
-    function _generateUnsignedUserOperation(bytes memory callData, address sender, uint256 nonce) internal pure returns(PackedUserOperation memory) {
+    function _generateUnsignedUserOperation(bytes memory callData, address sender, uint256 nonce)
+        internal
+        pure
+        returns (PackedUserOperation memory)
+    {
         uint128 verificationGasLimit = 16777216;
         uint128 callGasLimit = 16777216;
         uint128 maxPriorityFeePerGas = 256;
@@ -56,5 +62,4 @@ contract SendPackedUserOp is Script {
             signature: hex""
         });
     }
-
 }
